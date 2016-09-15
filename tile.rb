@@ -1,6 +1,6 @@
 class Tile
 
-  attr_accessor :neighbors
+  attr_accessor :neighbors, :revealed, :flagged
 
   def initialize
     @bomb = false
@@ -22,19 +22,17 @@ class Tile
   end
 
   def inspect
-    unless @revealed || @flagged
-      "*"
-    end
-    if bomb?
-      "b"
-    else
-      @neighbors.to_s
-    end
+    return "*"unless @revealed || @flagged
+    bomb? ? "b" : @neighbors.to_s
   end
 
   def reveal
     @revealed = true
+    @bomb ? false : true
   end
 
+  def flag
+    @flagged = !@flagged
+  end
 
 end

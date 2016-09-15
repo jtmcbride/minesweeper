@@ -1,15 +1,12 @@
 require_relative 'tile'
 class Board
-  attr_reader :board
+  attr_reader :grid
 
-  def initialize
+  def initialize(num_bombs = 10)
     @grid = new_grid
+    @num_bombs = num_bombs
     seed_bombs
     count_neighbors
-  end
-
-  def run
-
   end
 
   def new_grid
@@ -26,7 +23,7 @@ class Board
 
   def seed_bombs
     bombs = 0
-    until bombs == 10
+    until bombs == @num_bombs
       i = rand(0...9)
       j = rand(0...9)
       unless @grid[i][j].bomb?
@@ -34,6 +31,33 @@ class Board
         bombs += 1
       end
     end
+  end
+
+  def won?
+    num_revealed = grid.flatten.count {|tile| tile.revealed}
+    if num_revealed == 81 - @num_bombs
+      return true
+    end
+    false
+  end
+
+  def lost?
+
+  end
+
+  def reveal(pos, act)
+    tile = @grid[pos[0]][pos[1]]
+
+    case act
+    when 'f'
+     tile.flag
+    when 'r'
+      tile.reveal
+      reveal_neighbors(tile, pos) if tile.neighbors == 0
+    else
+      p "Not a valid move"
+    end
+
   end
 
   def count_neighbors
@@ -57,5 +81,13 @@ class Board
         end
       end
     end
+  end
+
+  def reveal_neighbors(tile, pos)
+    row_idx, col_idx = pos[0], pos[1]
+    row_idx == 0 ? previous_row = row_idx : previous_row = row_idx-1
+    row_idx == 8 ? next_row = row_idx : next_row = row_idx+1
+    col_idx == 0 ? previous_col = col_idx : previous_col = col_idx-1
+    col_idx == 8 ? next_col = col_idx : next_col = col_idx+1
   end
 end
