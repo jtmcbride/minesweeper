@@ -22,14 +22,27 @@ class Tile
     @neighbors += 1
   end
 
-  def inspect
-    return "*"unless @revealed || @flagged
+  # def inspect
+  #   return "*"unless @revealed || @flagged
+  #   bomb? ? "b" : @neighbors.to_s
+  # end
+
+  def to_s(t=false)
+    if t
+      return bomb? ? "b" : @neighbors.to_s
+    end
+    return "*" unless @revealed || @flagged
     bomb? ? "b" : @neighbors.to_s
-  end
+   end
+
 
   def reveal
     @revealed = true
     @bomb ? false : true
+  end
+
+  def interior?
+    @neighbors == 0 ? true : false
   end
 
   def flag

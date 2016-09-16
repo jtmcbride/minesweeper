@@ -9,7 +9,6 @@ class Board
     @num_bombs = num_bombs
     seed_bombs
     count_neighbors
-    @a = Array.new(9) {Array.new(9) {0}}
   end
 
   def new_grid
@@ -24,13 +23,18 @@ class Board
     arr
   end
 
-  def render
+  def render(t=false)
     @grid.each do |row|
-      row.map { |tile| tile.inspect }
-      p row
+      p row.map { |t| t.revealed }
     end
     nil
+    # @grid.each do |row|
+    #   row.map { |tile| tile.inspect }
+    #   p row
+    # end
+    # nil
   end
+
 
   def seed_bombs
     bombs = 0
@@ -64,7 +68,7 @@ class Board
      tile.flag
     when 'r'
       tile.reveal
-      reveal_neighbors(tile, pos) if tile.neighbors == 0
+      reveal_neighbors(tile) if tile.interior?
     else
       p "Not a valid move"
     end
@@ -94,32 +98,44 @@ class Board
     end
   end
 
-  def reveal_neighbors(tile, pos)
-    # debugger
-    row_idx, col_idx = pos[0], pos[1]
+  def [](x, y)
+    @grid[x][y]
+  end
+
+  def reveal_neighbors(tile)
+
+    #debugger
+    neighbors = get_neighbors(tile)
+    neighbors.each do |neighbor|
+      if neighbor.interior? && !neighbor.revealed
+         reveal_neighbors(neighbor)
+       end
+      neighbor.reveal
+    end
+  end
+
+  def get_neighbors(tile)
+    row_idx, col_idx = tile.pos[0], tile.pos[1]
     row_idx == 0 ? previous_row = row_idx : previous_row = row_idx-1
     row_idx == 8 ? next_row = row_idx : next_row = row_idx+1
     col_idx == 0 ? previous_col = col_idx : previous_col = col_idx-1
     col_idx == 8 ? next_col = col_idx : next_col = col_idx+1
+    neighbors = []
     unless row_idx == previous_row
-      @grid[previous_row][previous_col..next_col].each_with_index do |tile, i|
-        @a[tile.pos[0]][tile.pos[1]] += 1
-        tile.reveal
-        reveal_neighbors(tile, tile.pos) if tile.neighbors == 0 && !tile.revealed
+      @grid[previous_row][previous_col..next_col].each do |t|
+        neighbors << t
       end
     end
     unless next_row == row_idx
-      @grid[next_row][previous_col..next_col].each_with_index do |tile, i|
-        @a[tile.pos[0]][tile.pos[1]] +=1
-        tile.reveal
-        reveal_neighbors(tile, tile.pos) if tile.neighbors == 0 && !tile.revealed
+      @grid[next_row][previous_col..next_col].each do |t|
+        neighbors << t
       end
     end
-    @grid[row_idx][previous_col..next_col].each_with_index do |tile, i|
-      @a[tile.pos[0]][tile.pos[1]] +=1
-      next if i == 1
-      tile.reveal
-      reveal_neighbors(tile, tile.pos) if tile.neighbors == 0 && !tile.revealed
+    @grid[row_idx][previous_col..next_col].each_with_index do |t, i|
+      next if t == tile
+      neighbors << t
     end
+    neighbors
   end
+
 end
