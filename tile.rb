@@ -1,12 +1,13 @@
 class Tile
 
-  attr_accessor :neighbors, :revealed, :flagged
+  attr_accessor :neighbors, :revealed, :flagged, :pos
 
-  def initialize
+  def initialize(row, col)
     @bomb = false
     @neighbors = 0
     @revealed = false
     @flagged = false
+    @pos = [row, col]
   end
 
   def bomb?

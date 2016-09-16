@@ -1,4 +1,6 @@
 require_relative 'tile'
+require 'byebug'
+
 class Board
   attr_reader :grid
 
@@ -7,10 +9,19 @@ class Board
     @num_bombs = num_bombs
     seed_bombs
     count_neighbors
+    @a = Array.new(9) {Array.new(9) {0}}
   end
 
   def new_grid
-    Array.new(9) { Array.new(9) { Tile.new } }
+    arr = []
+    9.times do |i|
+      current = Array.new
+      9.times do |j|
+        current << Tile.new(i,j)
+      end
+      arr << current
+    end
+    arr
   end
 
   def render
@@ -84,10 +95,31 @@ class Board
   end
 
   def reveal_neighbors(tile, pos)
+    # debugger
     row_idx, col_idx = pos[0], pos[1]
     row_idx == 0 ? previous_row = row_idx : previous_row = row_idx-1
     row_idx == 8 ? next_row = row_idx : next_row = row_idx+1
     col_idx == 0 ? previous_col = col_idx : previous_col = col_idx-1
     col_idx == 8 ? next_col = col_idx : next_col = col_idx+1
+    unless row_idx == previous_row
+      @grid[previous_row][previous_col..next_col].each_with_index do |tile, i|
+        @a[tile.pos[0]][tile.pos[1]] += 1
+        tile.reveal
+        reveal_neighbors(tile, tile.pos) if tile.neighbors == 0 && !tile.revealed
+      end
+    end
+    unless next_row == row_idx
+      @grid[next_row][previous_col..next_col].each_with_index do |tile, i|
+        @a[tile.pos[0]][tile.pos[1]] +=1
+        tile.reveal
+        reveal_neighbors(tile, tile.pos) if tile.neighbors == 0 && !tile.revealed
+      end
+    end
+    @grid[row_idx][previous_col..next_col].each_with_index do |tile, i|
+      @a[tile.pos[0]][tile.pos[1]] +=1
+      next if i == 1
+      tile.reveal
+      reveal_neighbors(tile, tile.pos) if tile.neighbors == 0 && !tile.revealed
+    end
   end
 end
